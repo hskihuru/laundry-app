@@ -1,95 +1,93 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Site Maintenance</title>
-  <meta charset="utf-8">
-  <meta name="robots" content="noindex">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Minibar POS</title>
   <style>
-    body {
-      text-align: center;
-      padding: 20px;
-      font: 20px Helvetica, sans-serif;
-      color: #333;
-      background-color: #FFFFFF;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { width: 100%; height: 100%; overflow: hidden; }
+    iframe { width: 100%; height: 100%; border: none; }
+    .external-fullscreen {
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        background: rgb(0 0 0 / 0%);
+        backdrop-filter: blur(4px);
+        color: rgb(0 0 0 / 58%);
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
     }
-    @media (min-width: 768px) {
-      body { padding-top: 150px; }
-    }
-    h1 { font-size: 50px; }
-    article { display: block; text-align: left; max-width: 650px; margin: 0 auto; }
-    a { color: #dc8100; text-decoration: none; }
-    a:hover { color: #333; text-decoration: none; }
-    .countdown {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      margin-top: 30px;
-      text-align: center;
-      gap: 15px;
-      flex-wrap: wrap;
-    }
-    .countdown p {
-      background: #f5f5f5;
-      padding: 10px 15px;
-      border-radius: 8px;
-      font-weight: bold;
-      min-width: 100px;
-      margin: 0;
-    }
-    @media (max-width: 500px) {
-      .countdown p { width: calc(50% - 15px); }
+    .external-fullscreen:hover { background: #007bff; transform: scale(1.05); }
+    /* Temporary overlay to capture first click on iframe area */
+    .click-capture-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      z-index: 10000;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <article>
-    <h1>We&rsquo;ll be back soon!</h1>
-    <div>
-      <p>Sorry for the inconvenience but we&rsquo;re performing some maintenance at the moment. If you need to you can always <a href="mailto:you@example.com">contact us</a>, otherwise we&rsquo;ll be back online shortly!</p>
-      <p>&mdash; The Team</p>
-    </div>
-    <div class="countdown">
-      <p class="day"></p>
-      <p class="hour"></p>
-      <p class="minute"></p>
-      <p class="second"></p>
-    </div>
-  </article>
+  <iframe id="launcherIframe" 
+    src=""
+    referrerpolicy="no-referrer"
+    allowfullscreen
+    allow="fullscreen">
+  </iframe>
+  <button id="externalFullscreenBtn" class="external-fullscreen" title="Full screen">⤢</button>
+  <!-- Temporary overlay for first click -->
+  <div id="firstClickOverlay" class="click-capture-overlay"></div>
+
   <script>
-    // Set your target date here (change to your actual maintenance end date)
-    const targetDate = new Date('December 28, 2025 00:00:00').getTime();
+    const baseUrl = 'https://script.google.com/macros/s/AKfycbzDbG1C6E3AOGuiaeoeo211BLiJyRZhZ4IftTMMgifpSia8vo2iBZPtld6iGERu1i8/exec';
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    const iframe = document.getElementById('launcherIframe');
+    iframe.src = isMobile ? baseUrl + '?mode=mobile' : baseUrl;
 
-    function updateCountdown() {
-      const now = new Date().getTime();
-      const distance = targetDate - now;
-
-      if (distance < 0) {
-        document.querySelector('.day').innerText = '0 Days';
-        document.querySelector('.hour').innerText = '0 Hours';
-        document.querySelector('.minute').innerText = '0 Minutes';
-        document.querySelector('.second').innerText = '0 Seconds';
-        return;
+    const btn = document.getElementById('externalFullscreenBtn');
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(console.warn);
+      } else {
+        document.exitFullscreen();
       }
-
-      const second = 1000;
-      const minute = second * 60;
-      const hour = minute * 60;
-      const day = hour * 24;
-
-      const days = Math.floor(distance / day);
-      const hours = Math.floor((distance % day) / hour);
-      const minutes = Math.floor((distance % hour) / minute);
-      const seconds = Math.floor((distance % minute) / second);
-
-      document.querySelector('.day').innerText = days + ' Days';
-      document.querySelector('.hour').innerText = hours + ' Hours';
-      document.querySelector('.minute').innerText = minutes + ' Minutes';
-      document.querySelector('.second').innerText = seconds + ' Seconds';
     }
+    btn.addEventListener('click', toggleFullscreen);
 
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
+    document.addEventListener('fullscreenchange', () => {
+      btn.textContent = document.fullscreenElement ? '✕' : '⤢';
+      btn.title = document.fullscreenElement ? 'Exit full screen' : 'Full screen';
+    });
+
+    // --- First click anywhere (captured by overlay) ---
+    const overlay = document.getElementById('firstClickOverlay');
+    overlay.addEventListener('click', function onFirstClick() {
+      // Remove overlay immediately
+      overlay.removeEventListener('click', onFirstClick);
+      overlay.remove();
+      // Enter full‑screen
+      document.documentElement.requestFullscreen().catch(console.warn);
+    });
+    // Also for touch devices
+    overlay.addEventListener('touchstart', function onFirstTouch() {
+      overlay.removeEventListener('touchstart', onFirstTouch);
+      overlay.remove();
+      document.documentElement.requestFullscreen().catch(console.warn);
+    });
   </script>
 </body>
 </html>
