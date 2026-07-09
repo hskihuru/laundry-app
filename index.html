@@ -99,7 +99,6 @@
     referrerpolicy="no-referrer"
     allowfullscreen
     allow="fullscreen; autoplay; clipboard-read; clipboard-write"
-    sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-same-origin"
   ></iframe>
 
   <button id="externalFullscreenBtn" class="external-fullscreen" title="Full screen">⤢</button>
@@ -115,6 +114,7 @@
     (function () {
       'use strict';
 
+      // IMPORTANT: keep this URL in sync with the latest deployed /exec web app URL.
       var baseUrl = 'https://script.google.com/macros/s/AKfycbwnchq6K-8_hU_qEzDj3J4lxIDFYpugiGr59VuqNLETM-SfgudEIIp2G6Pk3nFz2a_X/exec';
       var isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
       var targetUrl = isMobile ? baseUrl + '?mode=mobile' : baseUrl;
