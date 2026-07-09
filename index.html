@@ -1,121 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Laundry Management System Launcher</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Laundry Management System</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; }
-
-    iframe {
+    body, html { width: 100%; height: 100%; overflow: hidden; }
+    iframe { width: 100%; height: 100%; border: none; }
+    .external-fullscreen {
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        background: rgb(0 0 0 / 0%);
+        backdrop-filter: blur(4px);
+        color: rgb(0 0 0 / 58%);
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    .external-fullscreen:hover { background: #007bff; transform: scale(1.05); }
+    /* Temporary overlay to capture first click on iframe area */
+    .click-capture-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      border: none;
-      background: #fff;
-    }
-
-    .external-fullscreen {
-      position: fixed;
-      top: 8px;
-      right: 8px;
-      background: rgb(0 0 0 / 8%);
-      backdrop-filter: blur(4px);
-      color: #222;
-      border: none;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      font-size: 14px;
+      background: transparent;
+      z-index: 10000;
       cursor: pointer;
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
     }
-
-    .external-fullscreen:hover {
-      background: #007bff;
-      color: #fff;
-      transform: scale(1.05);
-    }
-
-    .status-chip {
-      position: fixed;
-      left: 50%;
-      bottom: 16px;
-      transform: translateX(-50%);
-      z-index: 10001;
-      background: rgba(17, 24, 39, 0.85);
-      color: #fff;
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 12px;
-      backdrop-filter: blur(4px);
-    }
-
   </style>
 </head>
 <body>
-  <iframe
-    id="launcherIframe"
+  <iframe id="launcherIframe" 
     src=""
     referrerpolicy="no-referrer"
     allowfullscreen
-    allow="fullscreen; autoplay; clipboard-read; clipboard-write"
-  ></iframe>
-
+    allow="fullscreen">
+  </iframe>
   <button id="externalFullscreenBtn" class="external-fullscreen" title="Full screen">⤢</button>
-
-  <div class="status-chip" id="statusText">Trying embedded mode...</div>
+  <!-- Temporary overlay for first click -->
+  <div id="firstClickOverlay" class="click-capture-overlay"></div>
 
   <script>
-    (function () {
-      'use strict';
+    const baseUrl = 'https://script.google.com/macros/s/AKfycbwnchq6K-8_hU_qEzDj3J4lxIDFYpugiGr59VuqNLETM-SfgudEIIp2G6Pk3nFz2a_X/exec';
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    const iframe = document.getElementById('launcherIframe');
+    iframe.src = isMobile ? baseUrl + '?mode=mobile' : baseUrl;
 
-      // IMPORTANT: keep this URL in sync with the latest deployed /exec web app URL.
-      var baseUrl = 'https://script.google.com/macros/s/AKfycbwnchq6K-8_hU_qEzDj3J4lxIDFYpugiGr59VuqNLETM-SfgudEIIp2G6Pk3nFz2a_X/exec';
-      var isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
-      var targetUrl = isMobile ? baseUrl + '?mode=mobile' : baseUrl;
-
-      var iframe = document.getElementById('launcherIframe');
-      var btn = document.getElementById('externalFullscreenBtn');
-      var statusText = document.getElementById('statusText');
-      var iframeLoaded = false;
-
-      function toggleFullscreen() {
-        if (!document.fullscreenEnabled) return;
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(function () {});
-        } else {
-          document.exitFullscreen().catch(function () {});
-        }
+    const btn = document.getElementById('externalFullscreenBtn');
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(console.warn);
+      } else {
+        document.exitFullscreen();
       }
+    }
+    btn.addEventListener('click', toggleFullscreen);
 
-      btn.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', () => {
+      btn.textContent = document.fullscreenElement ? '✕' : '⤢';
+      btn.title = document.fullscreenElement ? 'Exit full screen' : 'Full screen';
+    });
 
-      document.addEventListener('fullscreenchange', function () {
-        btn.textContent = document.fullscreenElement ? '✕' : '⤢';
-        btn.title = document.fullscreenElement ? 'Exit full screen' : 'Full screen';
-      });
-
-      iframe.addEventListener('load', function () {
-        iframeLoaded = true;
-        statusText.textContent = 'Embedded mode active';
-        setTimeout(function () {
-          if (statusText) statusText.style.display = 'none';
-        }, 1200);
-      });
-
-      iframe.src = targetUrl;
-
-      setTimeout(function () {
-        if (!iframeLoaded) {
-          statusText.textContent = 'Embed blocked by browser policy';
-        }
-      }, 5000);
-    })();
+    // --- First click anywhere (captured by overlay) ---
+    const overlay = document.getElementById('firstClickOverlay');
+    overlay.addEventListener('click', function onFirstClick() {
+      // Remove overlay immediately
+      overlay.removeEventListener('click', onFirstClick);
+      overlay.remove();
+      // Enter full‑screen
+      document.documentElement.requestFullscreen().catch(console.warn);
+    });
+    // Also for touch devices
+    overlay.addEventListener('touchstart', function onFirstTouch() {
+      overlay.removeEventListener('touchstart', onFirstTouch);
+      overlay.remove();
+      document.documentElement.requestFullscreen().catch(console.warn);
+    });
   </script>
 </body>
 </html>
