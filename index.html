@@ -6,102 +6,90 @@
   <title>Laundry Management System Launcher</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; }
-
-    iframe {
+    html, body {
       width: 100%;
       height: 100%;
-      border: none;
-      background: #fff;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #e7f0ff 0%, #f8fbff 100%);
+      color: #1f2a37;
     }
 
-    .external-fullscreen {
-      position: fixed;
-      top: 8px;
-      right: 8px;
-      background: rgb(0 0 0 / 8%);
-      backdrop-filter: blur(4px);
-      color: #222;
-      border: none;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      font-size: 14px;
-      cursor: pointer;
-      z-index: 9999;
+    .wrap {
+      min-height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
+      padding: 16px;
     }
 
-    .external-fullscreen:hover {
-      background: #007bff;
-      color: #fff;
-      transform: scale(1.05);
-    }
-
-    .click-capture-overlay {
-      position: fixed;
-      inset: 0;
-      background: transparent;
-      z-index: 10000;
-      cursor: pointer;
-    }
-
-    .fallback-card {
-      position: fixed;
-      left: 50%;
-      bottom: 16px;
-      transform: translateX(-50%);
-      z-index: 10001;
+    .card {
+      width: min(520px, 100%);
       background: #fff;
-      border: 1px solid #d9d9d9;
-      border-radius: 10px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-      padding: 10px 12px;
-      display: none;
-      align-items: center;
+      border: 1px solid #dbe4f0;
+      border-radius: 14px;
+      box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+      padding: 24px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: #4b5563;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .actions {
+      display: flex;
       gap: 10px;
-      max-width: calc(100vw - 24px);
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
-    .fallback-text {
-      font-size: 13px;
-      color: #444;
-      white-space: nowrap;
-    }
-
-    .fallback-btn {
+    .btn {
       border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary {
       background: #007bff;
       color: #fff;
-      border-radius: 6px;
-      padding: 8px 12px;
-      font-size: 13px;
-      cursor: pointer;
-      white-space: nowrap;
     }
 
-    .fallback-btn:hover { background: #0062cc; }
+    .btn-primary:hover { background: #0062cc; }
+
+    .btn-ghost {
+      background: #eef4ff;
+      color: #174ea6;
+    }
+
+    .small {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #6b7280;
+    }
   </style>
 </head>
 <body>
-  <iframe
-    id="launcherIframe"
-    src=""
-    referrerpolicy="no-referrer"
-    allowfullscreen
-    allow="fullscreen; autoplay; clipboard-read; clipboard-write"
-    sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-same-origin"
-  ></iframe>
-
-  <button id="externalFullscreenBtn" class="external-fullscreen" title="Full screen">⤢</button>
-  <div id="firstClickOverlay" class="click-capture-overlay"></div>
-
-  <div id="fallbackCard" class="fallback-card">
-    <span class="fallback-text">Embedded view blocked by browser policy.</span>
-    <button id="openDirectBtn" class="fallback-btn">Open directly</button>
+  <div class="wrap">
+    <div class="card">
+      <h1>Opening Laundry App</h1>
+      <p>This launcher redirects directly to the Google Apps Script web app. Direct navigation avoids iframe blocking on script.google.com.</p>
+      <div class="actions">
+        <button id="openNowBtn" class="btn btn-primary">Open now</button>
+        <button id="retryBtn" class="btn btn-ghost">Retry redirect</button>
+      </div>
+      <div class="small" id="statusText">Redirecting...</div>
+    </div>
   </div>
 
   <script>
@@ -112,72 +100,20 @@
       var isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
       var targetUrl = isMobile ? baseUrl + '?mode=mobile' : baseUrl;
 
-      var iframe = document.getElementById('launcherIframe');
-      var btn = document.getElementById('externalFullscreenBtn');
-      var overlay = document.getElementById('firstClickOverlay');
-      var fallbackCard = document.getElementById('fallbackCard');
-      var openDirectBtn = document.getElementById('openDirectBtn');
-
-      var iframeLoaded = false;
-      var overlayRemoved = false;
-
-      function removeOverlay() {
-        if (overlayRemoved) return;
-        overlayRemoved = true;
-        if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
-      }
-
-      function requestFs() {
-        if (document.fullscreenEnabled && !document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(function () {});
-        }
-      }
+      var openNowBtn = document.getElementById('openNowBtn');
+      var retryBtn = document.getElementById('retryBtn');
+      var statusText = document.getElementById('statusText');
 
       function openDirect() {
-        window.location.href = targetUrl;
+        statusText.textContent = 'Opening app...';
+        window.location.replace(targetUrl);
       }
 
-      function toggleFullscreen() {
-        if (!document.fullscreenEnabled) return;
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(function () {});
-        } else {
-          document.exitFullscreen().catch(function () {});
-        }
-      }
+      openNowBtn.addEventListener('click', openDirect);
+      retryBtn.addEventListener('click', openDirect);
 
-      btn.addEventListener('click', toggleFullscreen);
-
-      document.addEventListener('fullscreenchange', function () {
-        btn.textContent = document.fullscreenElement ? '✕' : '⤢';
-        btn.title = document.fullscreenElement ? 'Exit full screen' : 'Full screen';
-      });
-
-      function handleFirstInteraction() {
-        removeOverlay();
-        requestFs();
-      }
-
-      overlay.addEventListener('click', handleFirstInteraction, { passive: true });
-      overlay.addEventListener('touchstart', handleFirstInteraction, { passive: true });
-
-      openDirectBtn.addEventListener('click', openDirect);
-
-      iframe.addEventListener('load', function () {
-        iframeLoaded = true;
-      });
-
-      iframe.src = targetUrl;
-
-      // If embed is blocked, show fallback prompt quickly.
-      setTimeout(function () {
-        if (!iframeLoaded) fallbackCard.style.display = 'flex';
-      }, 4500);
-
-      // Auto-recover to top-level navigation when framing is blocked.
-      setTimeout(function () {
-        if (!iframeLoaded) openDirect();
-      }, 9000);
+      // Auto-start redirect quickly; buttons remain as manual fallback.
+      setTimeout(openDirect, 400);
     })();
   </script>
 </body>
