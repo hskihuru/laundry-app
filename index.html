@@ -5,86 +5,89 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Laundry Management System</title>
   <style>
-    html, body {
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { width: 100%; height: 100%; overflow: hidden; }
+    iframe { width: 100%; height: 100%; border: none; }
+    .external-fullscreen {
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        background: rgb(0 0 0 / 0%);
+        backdrop-filter: blur(4px);
+        color: rgb(0 0 0 / 58%);
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        font-size: 12px;
+        cursor: pointer;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    .external-fullscreen:hover { background: #007bff; transform: scale(1.05); }
+    /* Temporary overlay to capture first click on iframe area */
+    .click-capture-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      margin: 0;
-      overflow: hidden;
-      background: #f8f9fa;
-      font-family: Arial, sans-serif;
-    }
-
-    .loader {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 12px;
-      color: #495057;
-    }
-
-    .spinner {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 4px solid rgba(0, 123, 255, 0.2);
-      border-top-color: #007bff;
-      animation: spin 1s linear infinite;
-    }
-
-    .note {
-      font-size: 14px;
-      text-align: center;
-      padding: 0 16px;
-    }
-
-    .fallback-btn {
-      border: none;
-      background: #007bff;
-      color: #fff;
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-size: 14px;
+      background: transparent;
+      z-index: 10000;
       cursor: pointer;
-    }
-
-    .fallback-btn:hover {
-      background: #0069d9;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <div class="loader" id="loader">
-    <div class="spinner" aria-hidden="true"></div>
-    <div class="note">Opening the Laundry Management System...</div>
-    <button class="fallback-btn" id="openDirectBtn" type="button">Open app</button>
-  </div>
+  <iframe id="launcherIframe" 
+    src=""
+    referrerpolicy="no-referrer"
+    allowfullscreen
+    allow="fullscreen">
+  </iframe>
+  <button id="externalFullscreenBtn" class="external-fullscreen" title="Full screen">⤢</button>
+  <!-- Temporary overlay for first click -->
+  <div id="firstClickOverlay" class="click-capture-overlay"></div>
 
   <script>
-    (function () {
-      'use strict';
+    const baseUrl = 'https://script.google.com/macros/s/AKfycbwBYKWjwILbigUqaFlDfAxc52bdoG52Q5a3QvTp1ltBXNNLifrGKL1uQZgRuXAOLpeJ/exec';
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+    const iframe = document.getElementById('launcherIframe');
+    iframe.src = isMobile ? baseUrl + '?mode=mobile' : baseUrl;
 
-      var baseUrl = 'https://script.google.com/macros/s/AKfycbwBYKWjwILbigUqaFlDfAxc52bdoG52Q5a3QvTp1ltBXNNLifrGKL1uQZgRuXAOLpeJ/exec';
-      var isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
-      var targetUrl = isMobile ? baseUrl + '?mode=mobile' : baseUrl;
-
-      function openDirect() {
-        var popup = window.open(targetUrl, '_blank', 'noopener,noreferrer');
-        if (!popup) {
-          window.location.href = targetUrl;
-        }
+    const btn = document.getElementById('externalFullscreenBtn');
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(console.warn);
+      } else {
+        document.exitFullscreen();
       }
+    }
+    btn.addEventListener('click', toggleFullscreen);
 
-      document.getElementById('openDirectBtn').addEventListener('click', openDirect);
+    document.addEventListener('fullscreenchange', () => {
+      btn.textContent = document.fullscreenElement ? '✕' : '⤢';
+      btn.title = document.fullscreenElement ? 'Exit full screen' : 'Full screen';
+    });
 
-      setTimeout(openDirect, 600);
-    })();
+    // --- First click anywhere (captured by overlay) ---
+    const overlay = document.getElementById('firstClickOverlay');
+    overlay.addEventListener('click', function onFirstClick() {
+      // Remove overlay immediately
+      overlay.removeEventListener('click', onFirstClick);
+      overlay.remove();
+      // Enter full‑screen
+      document.documentElement.requestFullscreen().catch(console.warn);
+    });
+    // Also for touch devices
+    overlay.addEventListener('touchstart', function onFirstTouch() {
+      overlay.removeEventListener('touchstart', onFirstTouch);
+      overlay.remove();
+      document.documentElement.requestFullscreen().catch(console.warn);
+    });
   </script>
 </body>
 </html>
