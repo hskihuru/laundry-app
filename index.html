@@ -4,6 +4,113 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Laundry Management System Launcher</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; font-family: Arial, sans-serif; }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+    }
+
+    .external-fullscreen {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      background: rgb(0 0 0 / 8%);
+      backdrop-filter: blur(4px);
+      color: #222;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 14px;
+      cursor: pointer;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .external-fullscreen:hover {
+      background: #007bff;
+      color: #fff;
+      transform: scale(1.05);
+    }
+
+    .status-chip {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      z-index: 10001;
+      background: rgba(17, 24, 39, 0.85);
+      color: #fff;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      backdrop-filter: blur(4px);
+    }
+
+    .fallback-card {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      z-index: 10002;
+      background: #fff;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+      padding: 10px 12px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      max-width: calc(100vw - 24px);
+    }
+
+    .fallback-text {
+      font-size: 13px;
+      color: #444;
+      white-space: nowrap;
+    }
+
+    .fallback-btn {
+      border: none;
+      background: #007bff;
+      color: #fff;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .fallback-btn:hover { background: #0062cc; }
+  </style>
+</head>
+<body>
+  <iframe
+    id="launcherIframe"
+    src=""
+    referrerpolicy="no-referrer"
+    allowfullscreen
+    allow="fullscreen; autoplay; clipboard-read; clipboard-write"
+    sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-same-origin"
+  ></iframe>
+
+  <button id="externalFullscreenBtn" class="external-fullscreen" title="Full screen">⤢</button>
+
+  <div class="status-chip" id="statusText">Trying embedded mode...</div>
+
+  <div id="fallbackCard" class="fallback-card">
+    <span class="fallback-text">Embedding blocked. Open in new tab while keeping this URL.</span>
+    <button id="openTabBtn" class="fallback-btn">Open app</button>
+  </div>
+
   <script>
     (function () {
       'use strict';
@@ -12,9 +119,51 @@
       var isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
       var targetUrl = isMobile ? baseUrl + '?mode=mobile' : baseUrl;
 
-      window.location.replace(targetUrl);
+      var iframe = document.getElementById('launcherIframe');
+      var btn = document.getElementById('externalFullscreenBtn');
+      var statusText = document.getElementById('statusText');
+      var fallbackCard = document.getElementById('fallbackCard');
+      var openTabBtn = document.getElementById('openTabBtn');
+      var iframeLoaded = false;
+
+      function toggleFullscreen() {
+        if (!document.fullscreenEnabled) return;
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(function () {});
+        } else {
+          document.exitFullscreen().catch(function () {});
+        }
+      }
+
+      function openInNewTab() {
+        window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      }
+
+      btn.addEventListener('click', toggleFullscreen);
+      openTabBtn.addEventListener('click', openInNewTab);
+
+      document.addEventListener('fullscreenchange', function () {
+        btn.textContent = document.fullscreenElement ? '✕' : '⤢';
+        btn.title = document.fullscreenElement ? 'Exit full screen' : 'Full screen';
+      });
+
+      iframe.addEventListener('load', function () {
+        iframeLoaded = true;
+        statusText.textContent = 'Embedded mode active';
+        setTimeout(function () {
+          if (statusText) statusText.style.display = 'none';
+        }, 1200);
+      });
+
+      iframe.src = targetUrl;
+
+      setTimeout(function () {
+        if (!iframeLoaded) {
+          statusText.textContent = 'Embed blocked by browser policy';
+          fallbackCard.style.display = 'flex';
+        }
+      }, 5000);
     })();
   </script>
-</head>
-<body></body>
+</body>
 </html>
