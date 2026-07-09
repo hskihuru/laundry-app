@@ -63,19 +63,22 @@
   <div class="loader" id="loader">
     <div class="spinner" aria-hidden="true"></div>
     <div class="note">Opening the Laundry Management System...</div>
-    <button class="fallback-btn" id="openDirectBtn" type="button">Open directly</button>
+    <button class="fallback-btn" id="openDirectBtn" type="button">Open app</button>
   </div>
 
   <script>
     (function () {
       'use strict';
 
-      var baseUrl = 'https://script.google.com/macros/s/AKfycbxO1ou30pDDPamw6_1o10rKvtV8ALacuQQ_qW1Kp3VytICHhYnWz7_TvtddoFanaU1o/exec';
+      var baseUrl = 'https://script.google.com/macros/s/AKfycbwBYKWjwILbigUqaFlDfAxc52bdoG52Q5a3QvTp1ltBXNNLifrGKL1uQZgRuXAOLpeJ/exec';
       var isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
       var targetUrl = isMobile ? baseUrl + '?mode=mobile' : baseUrl;
 
       function openDirect() {
-        window.location.replace(targetUrl);
+        var popup = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+        if (!popup) {
+          window.location.href = targetUrl;
+        }
       }
 
       document.getElementById('openDirectBtn').addEventListener('click', openDirect);
