@@ -55,41 +55,6 @@
       backdrop-filter: blur(4px);
     }
 
-    .fallback-card {
-      position: fixed;
-      left: 50%;
-      bottom: 16px;
-      transform: translateX(-50%);
-      z-index: 10002;
-      background: #fff;
-      border: 1px solid #d9d9d9;
-      border-radius: 10px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-      padding: 10px 12px;
-      display: none;
-      align-items: center;
-      gap: 10px;
-      max-width: calc(100vw - 24px);
-    }
-
-    .fallback-text {
-      font-size: 13px;
-      color: #444;
-      white-space: nowrap;
-    }
-
-    .fallback-btn {
-      border: none;
-      background: #007bff;
-      color: #fff;
-      border-radius: 6px;
-      padding: 8px 12px;
-      font-size: 13px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .fallback-btn:hover { background: #0062cc; }
   </style>
 </head>
 <body>
@@ -105,11 +70,6 @@
 
   <div class="status-chip" id="statusText">Trying embedded mode...</div>
 
-  <div id="fallbackCard" class="fallback-card">
-    <span class="fallback-text">Embedding blocked. Open in new tab while keeping this URL.</span>
-    <button id="openTabBtn" class="fallback-btn">Open app</button>
-  </div>
-
   <script>
     (function () {
       'use strict';
@@ -122,8 +82,6 @@
       var iframe = document.getElementById('launcherIframe');
       var btn = document.getElementById('externalFullscreenBtn');
       var statusText = document.getElementById('statusText');
-      var fallbackCard = document.getElementById('fallbackCard');
-      var openTabBtn = document.getElementById('openTabBtn');
       var iframeLoaded = false;
 
       function toggleFullscreen() {
@@ -135,12 +93,7 @@
         }
       }
 
-      function openInNewTab() {
-        window.open(targetUrl, '_blank', 'noopener,noreferrer');
-      }
-
       btn.addEventListener('click', toggleFullscreen);
-      openTabBtn.addEventListener('click', openInNewTab);
 
       document.addEventListener('fullscreenchange', function () {
         btn.textContent = document.fullscreenElement ? '✕' : '⤢';
@@ -160,7 +113,6 @@
       setTimeout(function () {
         if (!iframeLoaded) {
           statusText.textContent = 'Embed blocked by browser policy';
-          fallbackCard.style.display = 'flex';
         }
       }, 5000);
     })();
